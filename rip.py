@@ -72,14 +72,16 @@ for track in tracks:
 
     # ffmpeg -i track.wav -b:a 320k -metadata title="foo" -metadata artist="bar" -metadata album="baz" track.mp3
     mp3_encode_result = subprocess.run([
-        '/usr/bin/ffmpeg',
-        f'-i {wav_output_dir}/{track_filename}.wav',
-        f'-i {track_metadata_filename}',
-        '-map_metadata 1',
-        '-write_id3v2 1',
-        '-b:a 320k',
-        '-f mp3',
-        f'{mp3_output_dir}/{track_filename}.mp3'
+        "/usr/bin/ffmpeg",
+        "-i",
+        f"{wav_output_dir}/{track_filename}.wav",
+        "-i",
+        f"{track_metadata_filename}",
+        "-map_metadata 1",
+        "-write_id3v2 1",
+        "-b:a 320k",
+        "-f mp3",
+        f"{mp3_output_dir}/{track_filename}.mp3"
     ])
 
     # full list of metadata fields: title, comment, description, artist, album_artist, album, date, track (x/y), disc (x/y), genre, composer, producer, publisher, copyright
