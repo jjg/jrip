@@ -41,18 +41,22 @@ tracks = release["medium-list"][0]["track-list"]
 for track in tracks:
     track_number = track["number"]
     track_title = track["recording"]["title"]
-    track_filename = f"{track_number}_{track_title}.wav"
+    track_filename = f"{track_number}_{track_title}"
 
     print(f"Ripping {track_filename}")
 
     # rip the track
-    rip_result = subprocess.run(["/usr/bin/cdparanoia", "-q", track_number, f"{wav_output_dir}/{track_filename}"])
+    rip_result = subprocess.run([
+        "/usr/bin/cdparanoia", 
+        "-q", 
+        track_number, 
+        f"{wav_output_dir}/{track_filename}.wav"
+    ])
 
     # TODO: Handle failures gracefully (rip_result.returncode?)
 
-    # TODO: Encode
-    mp3_track_filename = f"{track_number}_{track_title}.mp3"
-    print(f"Encoding {mp3_track_filename}")
+    # Encode
+    print(f"Encoding {track_filename}")
 
     # For now we'll encode one track at a time, but we could do this
     # separately and in parallel if we wanted to
@@ -61,10 +65,10 @@ for track in tracks:
     mp3_encode_result = subprocess.run([
         '/usr/bin/ffmpeg',
         '-b:a 320k',
-        f'-metadata title = "{track_title}"',
-        f'-metadata artist = "{artist}"',
-        f'-metadata album = "{title}"',
-        f'"{mp3_track_filename}"'
+        f'-metadata title="{track_title}"',
+        #f'-metadata artist="{artist}"',
+        f'-metadata album="{title}"',
+        f'{mp3_output_dir}/{track_filename}.mp3'
     ])
 
     # full list of metadata fields: title, comment, description, artist, album_artist, album, date, track (x/y), disc (x/y), genre, composer, producer, publisher, copyright
