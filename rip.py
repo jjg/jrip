@@ -34,6 +34,7 @@ with open(f"{wav_output_dir}/metadata.json", "w") as f:
     json.dump(releases, f, sort_keys=True, indent=2)
 
 
+
 # Get tracks
 tracks = release["medium-list"][0]["track-list"]
 
@@ -44,6 +45,14 @@ for track in tracks:
     track_filename = f"{track_number}_{track_title}"
 
     print(f"Ripping {track_filename}")
+
+    # Create ffmpeg metadata file
+    track_metadata_filename = f"{wav_output_dir}/{track_filename}.txt"
+    with open(track_metadata_filename, "w") as mf:
+        mf.write(f"title={track_title}\n")
+        mf.write(f"artist={artist}\n")
+        mf.write(f"album={title}\n")
+        mf.close()
 
     # rip the track
     rip_result = subprocess.run([
@@ -64,10 +73,12 @@ for track in tracks:
     # ffmpeg -i track.wav -b:a 320k -metadata title="foo" -metadata artist="bar" -metadata album="baz" track.mp3
     mp3_encode_result = subprocess.run([
         '/usr/bin/ffmpeg',
+        f'-i {wav_output_dir}/{track_filename}.wav',
+        f'-i {track_metadata_filename}',
+        '-map_metadata 1',
+        '-write_id3v2 1',
         '-b:a 320k',
-        f'-metadata title="{track_title}"',
-        #f'-metadata artist="{artist}"',
-        f'-metadata album="{title}"',
+        '-f mp3',
         f'{mp3_output_dir}/{track_filename}.mp3'
     ])
 
