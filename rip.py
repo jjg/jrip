@@ -79,6 +79,8 @@ for track in tracks:
         "-map_metadata",
         "1",
         "-write_id3v2",
+        "3",
+        "-write_id3v1",
         "1",
         "-b:a",
         "320k",
