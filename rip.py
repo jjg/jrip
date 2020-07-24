@@ -14,16 +14,16 @@ disc = discid.read()
 mb.set_useragent("jrip", "0.01", "http://jasongullickson.com")
 releases = mb.get_releases_by_discid(disc.id, includes=["recordings","artists"])
 
-# Select the first release
+# If there's more than one release or artist guess that the first
+# one is best (we'll save all the metadata to a file in case
+# we change our minds later).
 release = releases['disc']['release-list'][0]
-id = release['id']
+artist = release["artist-credit"][0]["artist"]["name"]
 title = release['title']
 
-# Select the first artist
-artist = release["artist-credit"][0]["artist"]["name"]
-
-
-# Create the directory structure
+# Create the output directories
+# TODO: This should be dynamic, based on output formats 
+# specified in the config file
 wav_output_dir = f"{config.WAV_PATH}/{artist}/{title}"
 mp3_output_dir = f"{config.MP3_PATH}/{artist}/{title}"
 os.makedirs(wav_output_dir, exist_ok=True)
@@ -33,36 +33,31 @@ os.makedirs(mp3_output_dir, exist_ok=True)
 with open(f"{wav_output_dir}/metadata.json", "w") as f:
     json.dump(releases, f, sort_keys=True, indent=2)
 
-
-
-# Get tracks
+# Process the tracks
 tracks = release["medium-list"][0]["track-list"]
-
-# Rip!
 for track in tracks:
     track_number = track["number"]
     track_title = track["recording"]["title"]
     track_filename = f"{track_number}_{track_title}"
 
-    print(f"Ripping {track_filename}")
-
     # Create ffmpeg metadata file
+    # TODO: Add more metadata to this file
     track_metadata_filename = f"{wav_output_dir}/{track_filename}.txt"
     with open(track_metadata_filename, "w") as mf:
         mf.write(f"title={track_title}\n")
         mf.write(f"artist={artist}\n")
         mf.write(f"album={title}\n")
+        # TODO: Find out if close() is needed in a with: block
         mf.close()
 
-    # rip the track
+    # Rip 
+    print(f"Ripping {track_filename}")
     rip_result = subprocess.run([
         "/usr/bin/cdparanoia", 
         "-q", 
         track_number, 
         f"{wav_output_dir}/{track_filename}.wav"
-    ])
-
-    # TODO: Handle failures gracefully (rip_result.returncode?)
+    ], check=True)
 
     # Encode
     print(f"Encoding {track_filename}")
@@ -70,7 +65,11 @@ for track in tracks:
     # For now we'll encode one track at a time, but we could do this
     # separately and in parallel if we wanted to
 
-    # ffmpeg -i track.wav -b:a 320k -metadata title="foo" -metadata artist="bar" -metadata album="baz" track.mp3
+    # TODO: Encode to FLAC
+    # TODO: Encode to a dynamic number of formats defined
+    # in the config file
+    # TODO: Suppress or re-route ffmpeg's text output
+    # TODO: Don't prompt if file exists, just overwrite it
     mp3_encode_result = subprocess.run([
         "/usr/bin/ffmpeg",
         "-i",
@@ -86,7 +85,7 @@ for track in tracks:
         "-f",
         "mp3",
         f"{mp3_output_dir}/{track_filename}.mp3"
-    ])
+    ], check=True)
 
-    # full list of metadata fields: title, comment, description, artist, album_artist, album, date, track (x/y), disc (x/y), genre, composer, producer, publisher, copyright
-    # https://gist.github.com/eyecatchup/0757b3d8b989fe433979db2ea7d95a01
+# TODO: Handle exceptions and provide useful feedback
+print("All done!")
