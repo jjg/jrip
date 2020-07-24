@@ -77,10 +77,14 @@ for track in tracks:
         f"{wav_output_dir}/{track_filename}.wav",
         "-i",
         f"{track_metadata_filename}",
-        "-map_metadata 1",
-        "-write_id3v2 1",
-        "-b:a 320k",
-        "-f mp3",
+        "-map_metadata",
+        "1",
+        "-write_id3v2",
+        "1",
+        "-b:a",
+        "320k",
+        "-f",
+        "mp3",
         f"{mp3_output_dir}/{track_filename}.mp3"
     ])
 
