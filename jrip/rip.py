@@ -37,8 +37,10 @@ title = release['title']
 # specified in the config file
 wav_output_dir = f"{config.WAV_PATH}/{artist}/{title}"
 mp3_output_dir = f"{config.MP3_PATH}/{artist}/{title}"
+flac_output_dir = f"{config.FLAC_PATH}/{artist}/{title}"
 os.makedirs(wav_output_dir, exist_ok=True)
 os.makedirs(mp3_output_dir, exist_ok=True)
+os.makedirs(flac_output_dir, exist_ok=True)
 
 # Save all the metadata
 with open(f"{wav_output_dir}/metadata.json", "w") as f:
@@ -77,12 +79,30 @@ for track in tracks:
     # For now we'll encode one track at a time, but we could do this
     # separately and in parallel if we wanted to
 
+    # TODO: Don't prompt if file exists, just overwrite it
     # TODO: Encode to a dynamic number of formats defined
     # in the config file
     # TODO: Add the album art to the encoded file
-    # TODO: Encode to FLAC
     # TODO: Suppress or re-route ffmpeg's text output
-    # TODO: Don't prompt if file exists, just overwrite it
+
+    # TODO: Encode to FLAC
+    mp3_encode_result = subprocess.run([
+        "/usr/bin/ffmpeg",
+        "-i",
+        f"{wav_output_dir}/{track_filename}.wav",
+        "-i",
+        f"{track_metadata_filename}",
+        "-map_metadata",
+        "1",
+        "-write_id3v2",
+        "3",
+        "-write_id3v1",
+        "1",
+        "-f",
+        "flac",
+        f"{flac_output_dir}/{track_filename}.flac"
+    ], check=True)
+
     mp3_encode_result = subprocess.run([
         "/usr/bin/ffmpeg",
         "-i",
